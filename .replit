@@ -34,3 +34,8 @@ externalPort = 3000
 
 [agent]
 expertMode = true
+
+[deployment]
+deploymentTarget = "static"
+build = ["npm", "run", "build"]
+publicDir = "build"
