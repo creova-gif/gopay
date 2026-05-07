@@ -199,153 +199,219 @@ export function TravelPageRedesigned({ user, accessToken, onBack }: TravelPageRe
         </div>
       </div>
 
-      {/* ── BOOK YOUR JOURNEY ── */}
-      <div style={{ padding: '20px 16px 0' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div>
-            <h2 style={{ fontSize: '16px', fontWeight: 800, color: '#fff' }}>🚀 Anza Safari Yako</h2>
-            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Washirika wa moja kwa moja · Uthibitisho wa papo hapo</p>
+      {/* ── BOOK YOUR JOURNEY — magazine mosaic ── */}
+      <div style={{ padding: '24px 16px 0' }}>
+
+        {/* Editorial section header */}
+        <div style={{ position: 'relative', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+            <div>
+              <p style={{ fontSize: '10px', fontWeight: 900, letterSpacing: '0.18em', color: '#4ade80', textTransform: 'uppercase', marginBottom: 5 }}>— Huduma za Kusafiri</p>
+              <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#fff', letterSpacing: '-0.8px', lineHeight: 1.1 }}>Anza Safari<br/>Yako Leo</h2>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)' }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', animation: 'liveDot 2s ease-in-out infinite' }} />
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#4ade80' }}>Mifumo Online</span>
+              </div>
+              <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textAlign: 'right' }}>Washirika wa moja kwa moja<br/>Uthibitisho wa papo hapo</p>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 20, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.2)' }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', animation: 'liveDot 2s ease-in-out infinite' }} />
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#4ade80' }}>Mifumo Yote Online</span>
-          </div>
+          {/* Decorative rule */}
+          <div style={{ marginTop: 14, height: 1, background: 'linear-gradient(90deg,#4ade80,rgba(74,222,128,0.1),transparent)' }} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* ── ROW 1: FLIGHTS — full-width hero card ── */}
+        <button onClick={() => goBook('flights')}
+          className="active:scale-[0.985] transition-transform"
+          style={{ width: '100%', borderRadius: 24, overflow: 'hidden', position: 'relative', border: 'none', padding: 0, cursor: 'pointer', marginBottom: 12, display: 'block', boxShadow: '0 12px 48px rgba(96,165,250,0.25)' }}>
+          <div style={{ position: 'relative', height: 210 }}>
+            <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1080&q=80" alt="Flights"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg,rgba(15,23,42,0.95) 0%,rgba(30,58,138,0.7) 50%,rgba(15,23,42,0.3) 100%)' }} />
+            {/* Live deal badge */}
+            <div style={{ position: 'absolute', top: 16, right: 16, padding: '6px 14px', borderRadius: 20, background: 'linear-gradient(135deg,#dc2626,#f97316)', boxShadow: '0 4px 16px rgba(220,38,38,0.5)' }}>
+              <span style={{ fontSize: '11px', fontWeight: 900, color: '#fff' }}>OKOA 25%</span>
+            </div>
+            {/* Service icon pill top-left */}
+            <div style={{ position: 'absolute', top: 16, left: 16, display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', borderRadius: 20, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.18)' }}>
+              <Plane style={{ width: 14, height: 14, color: '#60a5fa' }} />
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff' }}>Ndege</span>
+            </div>
+            {/* Bottom content */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 18px 18px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                <div>
+                  <h3 style={{ fontSize: '22px', fontWeight: 900, color: '#fff', letterSpacing: '-0.5px', marginBottom: 4 }}>Ndege za Ndani</h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 8 }}>
+                    {['Njia 40+', 'Siku Moja', 'Amani'].map(c => (
+                      <span key={c} style={{ fontSize: '10px', fontWeight: 700, padding: '3px 8px', borderRadius: 10, background: 'rgba(96,165,250,0.2)', border: '1px solid rgba(96,165,250,0.35)', color: '#93c5fd' }}>{c}</span>
+                    ))}
+                  </div>
+                  <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Precision Air · Air Tanzania · +3</p>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+                  <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>Kuanzia</p>
+                  <p style={{ fontSize: '24px', fontWeight: 900, color: '#60a5fa', letterSpacing: '-0.5px', lineHeight: 1 }}>TZS 155K</p>
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end', padding: '7px 12px', borderRadius: 12, background: '#2563eb', border: 'none' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 800, color: '#fff' }}>Weka</span>
+                    <ArrowRight style={{ width: 13, height: 13, color: '#fff' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </button>
 
-          {/* FLIGHTS */}
+        {/* ── ROW 2: FERRY + BUSES — 2-column ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
           {[
             {
-              key: 'flights', service: 'flights' as BookingService,
-              Icon: Plane, label: 'Ndege za Ndani', sub: 'Safari ya haraka na ya uhakika',
-              chips: ['Njia 40+', 'Siku Moja', 'TZS 155K+'],
-              badge: { text: 'Okoa 25%', bg: 'linear-gradient(135deg,#dc2626,#f97316)' },
-              partners: ['Precision Air', 'Air Tanzania', '+3'],
-              partnerLabel: 'Washirika:',
-              svc: SVC.flights,
-            },
-            {
-              key: 'ferry', service: 'ferry' as BookingService,
-              Icon: Ship, label: 'Ferry ya Zanzibar', sub: 'Safari ya bahari · Masaa 2–4',
-              chips: ['Kila Siku', 'TZS 24,500', '12 Nafasi'],
-              badge: { text: '🔥 HOT -30%', bg: 'linear-gradient(135deg,#d97706,#f59e0b)' },
-              partners: ['Azam Marine', 'Instant Confirm'],
-              partnerLabel: 'Powered by:',
-              svc: SVC.ferry,
+              service: 'ferry' as BookingService,
+              Icon: Ship, label: 'Ferry Zanzibar', price: 'TZS 24.5K',
+              image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80',
+              accent: '#22d3ee', badge: '🔥 -30%', badgeBg: 'linear-gradient(135deg,#d97706,#f59e0b)',
+              overlay: 'linear-gradient(160deg,rgba(12,26,46,0.95) 0%,rgba(3,105,161,0.6) 100%)',
+              chips: ['Kila Siku', 'Masaa 2–4'],
               rating: 4.8,
             },
             {
-              key: 'buses', service: 'buses' as BookingService,
-              Icon: Bus, label: 'Mabasi ya Starehe', sub: 'Safari ya ndani ya nchi',
-              chips: ['VIP Inapatikana', 'WiFi & AC', 'TZS 25K+'],
-              badge: null,
-              partners: ['Kilimanjaro Express', 'Dar Express', '+5'],
-              partnerLabel: 'Waendeshaji:',
-              svc: SVC.buses,
-            },
-            {
-              key: 'sgr', service: 'sgr' as BookingService,
-              Icon: Train, label: 'SGR Express Train', sub: 'Uzoefu wa kisasa wa reli',
-              chips: ['Dar → Morogoro', 'Kila Siku', 'TZS 15K+'],
-              badge: { text: 'Serikali Imethibitisha', bg: 'linear-gradient(135deg,#4f46e5,#7c3aed)' },
-              partners: ['Tanzania Railways (TRC)', 'Online'],
-              partnerLabel: 'Rasmi:',
-              svc: SVC.sgr,
-            },
-            {
-              key: 'hotels', service: 'hotels' as BookingService,
-              Icon: Hotel, label: 'Hoteli & Lodges', sub: 'Starehe ya bei yoyote',
-              chips: ['Hoteli 500+', 'Bei Bora', 'TZS 80K+'],
-              badge: null,
-              partners: ['Booking.com', 'Jumia Travel', '+Local'],
-              partnerLabel: 'Powered by:',
-              svc: SVC.hotels,
-            },
-            {
-              key: 'parks', service: 'parks' as BookingService,
-              Icon: Mountain, label: 'Mbuga za Taifa', sub: 'Safari & matukio ya asili',
-              chips: ['Mbuga 16', 'Wildlife Tours', 'TZS 280K+'],
-              badge: { text: '🌿 UNESCO', bg: 'linear-gradient(135deg,#047857,#059669)' },
-              partners: ['TANAPA', 'Vibali Rasmi'],
-              partnerLabel: 'Imeidhinishwa na:',
-              svc: SVC.parks,
+              service: 'buses' as BookingService,
+              Icon: Bus, label: 'Mabasi VIP', price: 'TZS 25K+',
+              image: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=600&q=80',
+              accent: '#4ade80', badge: null, badgeBg: '',
+              overlay: 'linear-gradient(160deg,rgba(5,46,22,0.95) 0%,rgba(22,101,52,0.6) 100%)',
+              chips: ['WiFi & AC', 'VIP'],
               rating: null,
             },
-          ].map(svcCard => {
-            const { Icon, svc } = svcCard;
+          ].map(card => {
+            const CardIcon = card.Icon;
             return (
-              <button key={svcCard.key} onClick={() => goBook(svcCard.service)}
-                className="active:scale-[0.98] transition-transform text-left"
-                style={{ width: '100%', borderRadius: 22, padding: '20px', background: svc.gradient, border: `1px solid ${svc.accent}22`, position: 'relative', overflow: 'hidden', boxShadow: `0 4px 24px ${svc.glow}`, cursor: 'pointer' }}>
-                {/* Ambient corner glow */}
-                <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: `radial-gradient(circle, ${svc.accent}20 0%, transparent 70%)` }} />
-
-                {/* Deal badge */}
-                {svcCard.badge && (
-                  <div style={{ position: 'absolute', top: 16, right: 16, padding: '5px 12px', borderRadius: 20, background: svcCard.badge.bg }}>
-                    <p style={{ fontSize: '11px', fontWeight: 900, color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {svcCard.key === 'sgr' && <Shield style={{ width: 11, height: 11 }} />}
-                      {svcCard.badge.text}
-                    </p>
-                  </div>
-                )}
-
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                  {/* Header row */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <div style={{ width: 56, height: 56, borderRadius: 17, background: `${svc.accent}18`, border: `1px solid ${svc.accent}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Icon style={{ width: 28, height: 28, color: svc.accent }} />
-                      </div>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                          <p style={{ fontSize: '17px', fontWeight: 900, color: '#fff' }}>{svcCard.label}</p>
-                          {svcCard.key === 'flights' && <Shield style={{ width: 14, height: 14, color: '#4ade80' }} />}
-                          {svcCard.rating && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                              <Star style={{ width: 13, height: 13, color: '#fbbf24', fill: '#fbbf24' }} />
-                              <span style={{ fontSize: '12px', fontWeight: 800, color: '#fbbf24' }}>{svcCard.rating}</span>
-                            </div>
-                          )}
-                        </div>
-                        <p style={{ fontSize: '12px', color: `${svc.accent}cc` }}>{svcCard.sub}</p>
-                      </div>
+              <button key={card.service} onClick={() => goBook(card.service)}
+                className="active:scale-[0.97] transition-transform"
+                style={{ borderRadius: 20, overflow: 'hidden', position: 'relative', border: 'none', padding: 0, cursor: 'pointer', boxShadow: `0 8px 32px ${card.accent}22` }}>
+                <div style={{ position: 'relative', height: 185 }}>
+                  <img src={card.image} alt={card.label}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: card.overlay }} />
+                  {card.badge && (
+                    <div style={{ position: 'absolute', top: 10, right: 10, padding: '4px 8px', borderRadius: 10, background: card.badgeBg }}>
+                      <span style={{ fontSize: '9px', fontWeight: 900, color: '#fff' }}>{card.badge}</span>
                     </div>
-                    <ChevronRight style={{ width: 20, height: 20, color: `${svc.accent}80`, flexShrink: 0, marginTop: 4 }} />
+                  )}
+                  <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', alignItems: 'center', gap: 5, padding: '5px 9px', borderRadius: 14, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(10px)' }}>
+                    <CardIcon style={{ width: 12, height: 12, color: card.accent }} />
+                    {card.rating && (
+                      <>
+                        <Star style={{ width: 10, height: 10, fill: '#fbbf24', color: '#fbbf24' }} />
+                        <span style={{ fontSize: '10px', fontWeight: 800, color: '#fff' }}>{card.rating}</span>
+                      </>
+                    )}
                   </div>
-
-                  {/* Chips */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-                    {svcCard.chips.map(chip => (
-                      <span key={chip} style={{ fontSize: '11px', fontWeight: 700, padding: '5px 10px', borderRadius: 20, background: `${svc.accent}18`, border: `1px solid ${svc.accent}30`, color: svc.accent }}>
-                        {chip}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Partners row */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 12, borderTop: `1px solid ${svc.accent}18` }}>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', flexShrink: 0 }}>{svcCard.partnerLabel}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                      {svcCard.partners.map((p, i) => (
-                        <div key={i} style={{ padding: '3px 10px', borderRadius: 8, background: `${svc.accent}15`, border: `1px solid ${svc.accent}25` }}>
-                          <span style={{ fontSize: '11px', fontWeight: 700, color: svc.accent }}>{p}</span>
-                        </div>
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 12px 12px' }}>
+                    <p style={{ fontSize: '14px', fontWeight: 900, color: '#fff', letterSpacing: '-0.3px', marginBottom: 5 }}>{card.label}</p>
+                    <div style={{ display: 'flex', gap: 4, marginBottom: 8, flexWrap: 'wrap' }}>
+                      {card.chips.map(c => (
+                        <span key={c} style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: 8, background: `${card.accent}20`, color: card.accent, border: `1px solid ${card.accent}35` }}>{c}</span>
                       ))}
                     </div>
-                    {svcCard.key === 'sgr' && (
-                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', animation: 'liveDot 2s ease-in-out infinite' }} />
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#4ade80' }}>Online</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <p style={{ fontSize: '13px', fontWeight: 900, color: card.accent }}>{card.price}</p>
+                      <div style={{ padding: '5px 10px', borderRadius: 10, background: `${card.accent}22`, border: `1px solid ${card.accent}45` }}>
+                        <ArrowRight style={{ width: 12, height: 12, color: card.accent }} />
                       </div>
-                    )}
-                    {svcCard.key === 'parks' && (
-                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 8, background: 'rgba(96,165,250,0.12)' }}>
-                        <Shield style={{ width: 10, height: 10, color: '#60a5fa' }} />
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#60a5fa' }}>Rasmi</span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── ROW 3: SGR — full-width with government stamp ── */}
+        <button onClick={() => goBook('sgr')}
+          className="active:scale-[0.985] transition-transform"
+          style={{ width: '100%', borderRadius: 24, overflow: 'hidden', position: 'relative', border: 'none', padding: 0, cursor: 'pointer', marginBottom: 12, display: 'block', boxShadow: '0 12px 40px rgba(248,113,113,0.2)' }}>
+          <div style={{ position: 'relative', height: 160 }}>
+            <img src="https://images.unsplash.com/photo-1474487548417-781cb6d646ea?w=1080&q=80" alt="SGR Train"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg,rgba(28,7,7,0.97) 0%,rgba(127,29,29,0.8) 50%,rgba(28,7,7,0.5) 100%)' }} />
+            {/* Gov stamp */}
+            <div style={{ position: 'absolute', top: 14, right: 14, display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 20, background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', boxShadow: '0 4px 16px rgba(79,70,229,0.5)' }}>
+              <Shield style={{ width: 11, height: 11, color: '#fff' }} />
+              <span style={{ fontSize: '10px', fontWeight: 900, color: '#fff' }}>Serikali Imethibitisha</span>
+            </div>
+            <div style={{ position: 'absolute', top: 14, left: 16, display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', borderRadius: 20, background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(248,113,113,0.3)' }}>
+              <Train style={{ width: 13, height: 13, color: '#f87171' }} />
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#fff' }}>SGR Express</span>
+            </div>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '16px 18px 16px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+              <div>
+                <p style={{ fontSize: '18px', fontWeight: 900, color: '#fff', letterSpacing: '-0.4px', marginBottom: 4 }}>Dar → Morogoro · Kila Siku</p>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {['Saa 1.5', 'Darasa la 1 & 2', 'TZS 15K+'].map(c => (
+                    <span key={c} style={{ fontSize: '9px', fontWeight: 700, padding: '2px 7px', borderRadius: 8, background: 'rgba(248,113,113,0.18)', color: '#fca5a5', border: '1px solid rgba(248,113,113,0.3)' }}>{c}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', borderRadius: 14, background: '#991b1b', flexShrink: 0 }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: '#fff' }}>Weka</span>
+                <ArrowRight style={{ width: 12, height: 12, color: '#fff' }} />
+              </div>
+            </div>
+          </div>
+        </button>
+
+        {/* ── ROW 4: HOTELS + PARKS — 2-column ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {[
+            {
+              service: 'hotels' as BookingService,
+              Icon: Hotel, label: 'Hoteli & Lodges', price: 'TZS 80K+',
+              image: 'https://images.unsplash.com/photo-1551882547-ff40c4fe5eb3?w=600&q=80',
+              accent: '#fb923c', badge: null, badgeBg: '',
+              overlay: 'linear-gradient(160deg,rgba(28,10,0,0.95) 0%,rgba(194,65,12,0.65) 100%)',
+              chips: ['500+ Hoteli', 'Bei Bora'],
+            },
+            {
+              service: 'parks' as BookingService,
+              Icon: Mountain, label: 'Mbuga za Taifa', price: 'TZS 280K+',
+              image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=80',
+              accent: '#34d399', badge: '🌿 UNESCO', badgeBg: 'linear-gradient(135deg,#047857,#059669)',
+              overlay: 'linear-gradient(160deg,rgba(2,44,34,0.95) 0%,rgba(4,120,87,0.65) 100%)',
+              chips: ['Mbuga 16', 'TANAPA'],
+            },
+          ].map(card => {
+            const CardIcon = card.Icon;
+            return (
+              <button key={card.service} onClick={() => goBook(card.service)}
+                className="active:scale-[0.97] transition-transform"
+                style={{ borderRadius: 20, overflow: 'hidden', position: 'relative', border: 'none', padding: 0, cursor: 'pointer', boxShadow: `0 8px 32px ${card.accent}22` }}>
+                <div style={{ position: 'relative', height: 185 }}>
+                  <img src={card.image} alt={card.label}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: card.overlay }} />
+                  {card.badge && (
+                    <div style={{ position: 'absolute', top: 10, right: 10, padding: '4px 8px', borderRadius: 10, background: card.badgeBg }}>
+                      <span style={{ fontSize: '9px', fontWeight: 900, color: '#fff' }}>{card.badge}</span>
+                    </div>
+                  )}
+                  <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', alignItems: 'center', gap: 5, padding: '5px 9px', borderRadius: 14, background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(10px)' }}>
+                    <CardIcon style={{ width: 12, height: 12, color: card.accent }} />
+                  </div>
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '14px 12px 12px' }}>
+                    <p style={{ fontSize: '14px', fontWeight: 900, color: '#fff', letterSpacing: '-0.3px', marginBottom: 5 }}>{card.label}</p>
+                    <div style={{ display: 'flex', gap: 4, marginBottom: 8, flexWrap: 'wrap' }}>
+                      {card.chips.map(c => (
+                        <span key={c} style={{ fontSize: '9px', fontWeight: 700, padding: '2px 6px', borderRadius: 8, background: `${card.accent}20`, color: card.accent, border: `1px solid ${card.accent}35` }}>{c}</span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <p style={{ fontSize: '13px', fontWeight: 900, color: card.accent }}>{card.price}</p>
+                      <div style={{ padding: '5px 10px', borderRadius: 10, background: `${card.accent}22`, border: `1px solid ${card.accent}45` }}>
+                        <ArrowRight style={{ width: 12, height: 12, color: card.accent }} />
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </button>
