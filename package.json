@@ -4,6 +4,15 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@capacitor/android": "^8.3.2",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^7.6.3",
+    "@capacitor/core": "^8.3.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.3.2",
+    "@capacitor/keyboard": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-aspect-ratio": "^1.1.2",
@@ -69,6 +78,12 @@
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:android": "npm run cap:sync && npx cap open android",
+    "cap:ios": "npm run cap:sync && npx cap open ios",
+    "cap:run:android": "npm run cap:sync && npx cap run android",
+    "cap:build:android": "npm run cap:sync && cd android && ./gradlew assembleRelease",
+    "cap:update": "npx cap update"
   }
 }

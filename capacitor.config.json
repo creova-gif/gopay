@@ -1,0 +1,47 @@
+{
+  "appId": "com.gopay.app",
+  "appName": "goPay",
+  "webDir": "build",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": [
+      "*.supabase.co",
+      "*.clickpesa.com",
+      "images.unsplash.com"
+    ]
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#080d08",
+      "overlaysWebView": false
+    },
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#080d08",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "Keyboard": {
+      "resize": "body",
+      "style": "DARK",
+      "resizeOnFullScreen": true
+    }
+  },
+  "android": {
+    "backgroundColor": "#080d08",
+    "allowMixedContent": false,
+    "useLegacyBridge": false
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "backgroundColor": "#080d08",
+    "preferredContentMode": "mobile",
+    "limitsNavigationsToAppBoundDomains": true
+  }
+}
