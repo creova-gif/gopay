@@ -100,7 +100,7 @@ export function PaymentsScreen({ navigation }: any) {
           else if (step === 'provider') setStep('list');
         }}
       />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 80 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110 }} showsVerticalScrollIndicator={false}>
 
         {step === 'list' && (
           <View style={{ gap: 12 }}>

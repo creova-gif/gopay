@@ -5,9 +5,10 @@ import {
 } from 'react-native';
 import Animated, {
   useSharedValue, useAnimatedStyle, withSpring,
-  withSequence, withTiming,
+  withSequence, withTiming, interpolate,
 } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -15,174 +16,219 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { colors } from '../../theme/colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TAB_COUNT = 5;
-const TAB_WIDTH = SCREEN_WIDTH / TAB_COUNT;
+const CONTAINER_W = SCREEN_WIDTH - 32;
+const ACTIVE_W = 108;
+const INACTIVE_W = (CONTAINER_W - ACTIVE_W) / 4;
+const BAR_HEIGHT = 60;
 
-const TABS_CONFIG = [
-  { name: 'Home', icon: 'home' as const, iconOutline: 'home-outline' as const, label: 'Nyumbani' },
-  { name: 'Wallet', icon: 'wallet' as const, iconOutline: 'wallet-outline' as const, label: 'Pochi' },
-  { name: 'Payments', icon: 'receipt' as const, iconOutline: 'receipt-outline' as const, label: 'Malipo' },
-  { name: 'Travel', icon: 'airplane' as const, iconOutline: 'airplane-outline' as const, label: 'Safari' },
-  { name: 'Profile', icon: 'person' as const, iconOutline: 'person-outline' as const, label: 'Mimi' },
+const TABS = [
+  { name: 'Home',     icon: 'home'     as const, outline: 'home-outline'     as const, label: 'Nyumbani' },
+  { name: 'Wallet',   icon: 'wallet'   as const, outline: 'wallet-outline'   as const, label: 'Pochi'    },
+  { name: 'Payments', icon: 'receipt'  as const, outline: 'receipt-outline'  as const, label: 'Malipo'   },
+  { name: 'Travel',   icon: 'airplane' as const, outline: 'airplane-outline' as const, label: 'Safari'   },
+  { name: 'Profile',  icon: 'person'   as const, outline: 'person-outline'   as const, label: 'Mimi'     },
 ];
 
 export function AnimatedTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const pillX = useSharedValue(0);
+
+  const w0 = useSharedValue(0 === state.index ? ACTIVE_W : INACTIVE_W);
+  const w1 = useSharedValue(1 === state.index ? ACTIVE_W : INACTIVE_W);
+  const w2 = useSharedValue(2 === state.index ? ACTIVE_W : INACTIVE_W);
+  const w3 = useSharedValue(3 === state.index ? ACTIVE_W : INACTIVE_W);
+  const w4 = useSharedValue(4 === state.index ? ACTIVE_W : INACTIVE_W);
+  const widths = [w0, w1, w2, w3, w4];
 
   useEffect(() => {
-    pillX.value = withSpring(state.index * TAB_WIDTH, {
-      damping: 18,
-      stiffness: 180,
-      mass: 0.8,
+    widths.forEach((w, i) => {
+      w.value = withSpring(i === state.index ? ACTIVE_W : INACTIVE_W, {
+        damping: 20,
+        stiffness: 220,
+        mass: 0.7,
+      });
     });
   }, [state.index]);
 
-  const pillStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: pillX.value }],
-  }));
-
-  const tabBarHeight = 58 + insets.bottom;
-
   return (
-    <View style={[styles.wrapper, { height: tabBarHeight }]}>
-      <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
-      <View style={styles.topBorder} />
-
-      <Animated.View style={[styles.pill, pillStyle]} />
-
-      <View style={styles.tabs}>
-        {TABS_CONFIG.map((tab, index) => {
-          const isActive = state.index === index;
-          return (
-            <TabItem
+    <View
+      style={[
+        styles.floatWrapper,
+        { bottom: Math.max(insets.bottom, 8) + 10 },
+      ]}
+      pointerEvents="box-none"
+    >
+      <View style={styles.shadowRing} />
+      <View style={styles.container}>
+        <BlurView intensity={55} tint="dark" style={StyleSheet.absoluteFill} />
+        <View style={styles.innerBorder} />
+        <View style={styles.row}>
+          {TABS.map((tab, i) => (
+            <PillTab
               key={tab.name}
               tab={tab}
-              isActive={isActive}
+              isActive={state.index === i}
+              widthSV={widths[i]}
               onPress={() => {
                 Haptics.selectionAsync();
                 const event = navigation.emit({
                   type: 'tabPress',
-                  target: state.routes[index]?.key,
+                  target: state.routes[i]?.key,
                   canPreventDefault: true,
                 });
-                if (!isActive && !event.defaultPrevented) {
+                if (state.index !== i && !event.defaultPrevented) {
                   navigation.navigate(tab.name);
                 }
               }}
             />
-          );
-        })}
+          ))}
+        </View>
       </View>
     </View>
   );
 }
 
-function TabItem({ tab, isActive, onPress }: {
-  tab: typeof TABS_CONFIG[0];
+interface PillTabProps {
+  tab: typeof TABS[0];
   isActive: boolean;
+  widthSV: Animated.SharedValue<number>;
   onPress: () => void;
-}) {
-  const scale = useSharedValue(1);
-  const glowOpacity = useSharedValue(isActive ? 1 : 0);
+}
+
+function PillTab({ tab, isActive, widthSV, onPress }: PillTabProps) {
+  const pressScale = useSharedValue(1);
+  const iconScale = useSharedValue(isActive ? 1.1 : 1);
 
   useEffect(() => {
-    glowOpacity.value = withTiming(isActive ? 1 : 0, { duration: 200 });
+    iconScale.value = withSpring(isActive ? 1.1 : 1, { damping: 12, stiffness: 200 });
   }, [isActive]);
 
-  const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+  const containerStyle = useAnimatedStyle(() => ({
+    width: widthSV.value,
+    transform: [{ scale: pressScale.value }],
   }));
 
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
+  const bgOpacity = useAnimatedStyle(() => ({
+    opacity: interpolate(widthSV.value, [INACTIVE_W, INACTIVE_W + 30, ACTIVE_W], [0, 0, 1]),
+  }));
+
+  const labelStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(widthSV.value, [INACTIVE_W, INACTIVE_W + 20, ACTIVE_W], [0, 0, 1]),
+    width: interpolate(widthSV.value, [INACTIVE_W, ACTIVE_W], [0, 58]),
+  }));
+
+  const iconColor = useAnimatedStyle(() => ({
+    opacity: interpolate(widthSV.value, [INACTIVE_W, ACTIVE_W], [0.45, 1]),
   }));
 
   const handlePress = () => {
-    scale.value = withSequence(
-      withTiming(0.75, { duration: 70 }),
-      withSpring(1, { damping: 8, stiffness: 250 }),
+    pressScale.value = withSequence(
+      withTiming(0.88, { duration: 80 }),
+      withSpring(1, { damping: 6, stiffness: 300 }),
     );
     onPress();
   };
 
   return (
-    <TouchableOpacity
-      style={styles.tab}
-      onPress={handlePress}
-      activeOpacity={0.8}
-    >
-      <Animated.View style={[styles.glowCircle, glowStyle]} />
-      <Animated.View style={iconStyle}>
-        <Ionicons
-          name={isActive ? tab.icon : tab.iconOutline}
-          size={22}
-          color={isActive ? colors.greenLight : colors.white40}
-        />
+    <TouchableOpacity onPress={handlePress} activeOpacity={1}>
+      <Animated.View style={[styles.pill, containerStyle]}>
+        <Animated.View style={[StyleSheet.absoluteFill, styles.pillBg, bgOpacity]}>
+          <LinearGradient
+            colors={['rgba(74,222,128,0.22)', 'rgba(22,163,74,0.14)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={styles.pillBorder} />
+        </Animated.View>
+
+        <Animated.View style={[styles.iconWrap, iconColor]}>
+          <Ionicons
+            name={isActive ? tab.icon : tab.outline}
+            size={20}
+            color={isActive ? colors.greenLight : colors.white}
+          />
+        </Animated.View>
+
+        <Animated.Text
+          numberOfLines={1}
+          style={[styles.pillLabel, labelStyle]}
+        >
+          {tab.label}
+        </Animated.Text>
       </Animated.View>
-      <Text style={[styles.label, isActive && styles.labelActive]}>
-        {tab.label}
-      </Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
+  floatWrapper: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+  },
+  shadowRing: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: -4,
+    height: BAR_HEIGHT + 8,
+    borderRadius: BAR_HEIGHT,
+    backgroundColor: 'rgba(74,222,128,0.07)',
+    shadowColor: colors.greenLight,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  container: {
+    width: CONTAINER_W,
+    height: BAR_HEIGHT,
+    borderRadius: BAR_HEIGHT / 2,
     overflow: Platform.OS === 'android' ? 'hidden' : 'visible',
   },
-  topBorder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: colors.border,
+  innerBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: BAR_HEIGHT / 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  row: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    gap: 4,
+    overflow: 'hidden',
   },
   pill: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: TAB_WIDTH,
-    height: 2,
-    backgroundColor: colors.greenLight,
-    borderBottomLeftRadius: 2,
-    borderBottomRightRadius: 2,
-    shadowColor: colors.greenLight,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  tabs: {
+    height: 48,
+    borderRadius: 24,
     flexDirection: 'row',
-    height: 58,
-    alignItems: 'center',
-  },
-  tab: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
-    height: 58,
+    overflow: 'hidden',
   },
-  glowCircle: {
-    position: 'absolute',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.greenDim,
+  pillBg: {
+    borderRadius: 24,
+    overflow: 'hidden',
   },
-  label: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.white40,
+  pillBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(74,222,128,0.3)',
   },
-  labelActive: {
+  iconWrap: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pillLabel: {
+    fontSize: 12,
+    fontWeight: '700',
     color: colors.greenLight,
+    overflow: 'hidden',
+    letterSpacing: 0.1,
   },
 });

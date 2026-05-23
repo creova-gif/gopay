@@ -238,7 +238,7 @@ export function HomeScreen({ navigation }: any) {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 90 }}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
