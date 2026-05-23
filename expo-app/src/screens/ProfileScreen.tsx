@@ -7,7 +7,15 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { colors } from '../theme/colors';
 
-const MENU_SECTIONS = [
+type MenuItem = {
+  icon: string;
+  label: string;
+  screen: string | null;
+  color: string;
+  badge?: string;
+};
+
+const MENU_SECTIONS: { title: string; items: MenuItem[] }[] = [
   {
     title: 'Akaunti',
     items: [

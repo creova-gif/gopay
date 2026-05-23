@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { colors } from '../../theme/colors';
 
 type BadgeVariant = 'green' | 'red' | 'blue' | 'orange' | 'purple' | 'default';
@@ -7,7 +7,7 @@ type BadgeVariant = 'green' | 'red' | 'blue' | 'orange' | 'purple' | 'default';
 interface BadgeProps {
   label: string;
   variant?: BadgeVariant;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 const variantColors: Record<BadgeVariant, { bg: string; text: string }> = {
