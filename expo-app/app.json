@@ -7,6 +7,10 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#080d08",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/62eac3a0-273d-4efa-a650-e2b4a4e241db"
+    },
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -53,7 +57,8 @@
       "expo-local-authentication",
       "expo-camera",
       "expo-secure-store",
-      "expo-asset"
+      "expo-asset",
+      "expo-updates"
     ],
     "extra": {
       "eas": {
