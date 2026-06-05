@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "dPiNUcPMToG-mMmxyYr9_"
+uri = "file://docs/GOPAY_PRD.md"
+type = "text"
+title = "GOPAY — PRD, User Stories & Features"
