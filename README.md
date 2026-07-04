@@ -121,3 +121,8 @@ Proprietary — All Rights Reserved. See `LICENSE`.
 ## Credits
 
 Built by CREOVA. Product lead: Justin Mafie.
+
+
+## Related Products
+
+This is one of three connected CREOVA products forming a single East African fintech / creator-economy thesis: the consumer-facing app where earnings, payments, and everyday financial life happen. See [Sauti-Os](https://github.com/creova-gif/Sauti-Os), [Kultr-Hub](https://github.com/creova-gif/Kultr-Hub), and the full [East Africa Fintech Thesis](https://github.com/creova-gif/CREOVA/blob/main/EAST-AFRICA-FINTECH-THESIS.md) for how they connect.
