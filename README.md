@@ -54,8 +54,8 @@ Positioning is closest to Revolut, WeChat Pay, and Selcom, but built specificall
 ### Installation
 
 ```bash
-git clone https://github.com/creova-gif/Gopay.git
-cd Gopay
+git clone https://github.com/creova-gif/gopay.git
+cd gopay
 npm install
 ```
 
