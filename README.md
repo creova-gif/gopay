@@ -6,6 +6,8 @@
 [![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-blue)]()
 [![License](https://img.shields.io/badge/license-proprietary-red)]()
 
+![goPay demo screen](docs/screenshots/dashboard.png)
+
 ---
 
 ## What this is
