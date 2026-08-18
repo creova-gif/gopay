@@ -221,30 +221,43 @@ app.post('/make-server-69a10ee8/wallet/add-funds', async (c) => {
   }
 
   try {
-    const { amount, source, pin } = await c.req.json();
+    const { amount, source, pin, idempotencyKey } = await c.req.json();
 
     const wallet = await kv.get(`wallet:${userId}`);
     if (wallet.pin !== pin) {
       return c.json({ error: 'Invalid PIN' }, 400);
     }
 
-    const newBalance = wallet.balance + parseInt(amount);
-    wallet.balance = newBalance;
-    await kv.set(`wallet:${userId}`, wallet);
+    // idempotencyKey should be client-generated and stable across retries of
+    // the SAME attempt (e.g. UUID created once when the user taps "Add
+    // Funds", resent unchanged on any automatic retry). Older clients that
+    // don't send one yet get a per-request fallback, which is safe (no
+    // crash) but gives no retry protection until the frontend sends a real
+    // stable key.
+    const key = idempotencyKey || crypto.randomUUID();
 
-    // Record transaction
-    const transactionId = `tx_${Date.now()}`;
-    await kv.set(`transaction:${transactionId}`, {
-      id: transactionId,
-      userId,
-      type: 'credit',
-      amount: parseInt(amount),
-      description: `Added funds from ${source}`,
-      timestamp: new Date().toISOString(),
-      status: 'completed',
+    const { data, error } = await supabase.rpc('process_wallet_transaction', {
+      p_idempotency_key: key,
+      p_user_id: userId,
+      p_endpoint: 'wallet/add-funds',
+      p_entry_type: 'credit',
+      p_amount: parseInt(amount),
+      p_currency: wallet.currency || 'TZS',
+      p_description: `Added funds from ${source}`,
     });
 
-    return c.json({ success: true, newBalance });
+    if (error) throw error;
+    if (data.error) {
+      return c.json({ error: data.message || data.error }, data.error === 'conflict' ? 409 : 400);
+    }
+
+    // Keep the kv wallet record's cached balance in sync for endpoints that
+    // still read it directly (e.g. GET /wallet/balance). The ledger in
+    // gopay_ledger / gopay_wallet_balance remains the source of truth.
+    wallet.balance = data.newBalance;
+    await kv.set(`wallet:${userId}`, wallet);
+
+    return c.json({ success: true, newBalance: data.newBalance, transactionId: data.transactionId });
   } catch (error: any) {
     console.error('Error adding funds:', error);
     return c.json({ error: error.message }, 500);
@@ -259,7 +272,7 @@ app.post('/make-server-69a10ee8/wallet/send-money', async (c) => {
   }
 
   try {
-    const { recipient, amount, pin } = await c.req.json();
+    const { recipient, amount, pin, idempotencyKey } = await c.req.json();
 
     const wallet = await kv.get(`wallet:${userId}`);
     if (wallet.pin !== pin) {
@@ -267,26 +280,34 @@ app.post('/make-server-69a10ee8/wallet/send-money', async (c) => {
     }
 
     const amountNum = parseInt(amount);
-    if (wallet.balance < amountNum) {
-      return c.json({ error: 'Insufficient balance' }, 400);
-    }
+    const key = idempotencyKey || crypto.randomUUID();
 
-    wallet.balance -= amountNum;
-    await kv.set(`wallet:${userId}`, wallet);
-
-    // Record transaction
-    const transactionId = `tx_${Date.now()}`;
-    await kv.set(`transaction:${transactionId}`, {
-      id: transactionId,
-      userId,
-      type: 'debit',
-      amount: amountNum,
-      description: `Sent to ${recipient}`,
-      timestamp: new Date().toISOString(),
-      status: 'completed',
+    // Balance check + debit happen atomically inside the function (under an
+    // advisory lock keyed on the user), so this replaces both the manual
+    // "if balance < amount" check and the direct balance mutation that used
+    // to happen here.
+    const { data, error } = await supabase.rpc('process_wallet_transaction', {
+      p_idempotency_key: key,
+      p_user_id: userId,
+      p_endpoint: 'wallet/send-money',
+      p_entry_type: 'debit',
+      p_amount: amountNum,
+      p_currency: wallet.currency || 'TZS',
+      p_description: `Sent to ${recipient}`,
     });
 
-    return c.json({ success: true, newBalance: wallet.balance });
+    if (error) throw error;
+    if (data.error === 'insufficient_balance') {
+      return c.json({ error: 'Insufficient balance' }, 400);
+    }
+    if (data.error) {
+      return c.json({ error: data.message || data.error }, data.error === 'conflict' ? 409 : 400);
+    }
+
+    wallet.balance = data.newBalance;
+    await kv.set(`wallet:${userId}`, wallet);
+
+    return c.json({ success: true, newBalance: data.newBalance, transactionId: data.transactionId });
   } catch (error: any) {
     console.error('Error sending money:', error);
     return c.json({ error: error.message }, 500);

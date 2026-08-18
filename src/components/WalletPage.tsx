@@ -45,12 +45,14 @@ export function WalletPage({ user, accessToken, onBack, onNavigate, isDemoMode }
     amount: '',
     source: '',
     pin: '',
+    idempotencyKey: crypto.randomUUID(),
   });
 
   const [sendMoneyData, setSendMoneyData] = useState({
     recipient: '',
     amount: '',
     pin: '',
+    idempotencyKey: crypto.randomUUID(),
   });
 
   const [requestMoneyData, setRequestMoneyData] = useState({
@@ -178,7 +180,7 @@ export function WalletPage({ user, accessToken, onBack, onNavigate, isDemoMode }
 
         if (response.ok) {
           setShowAddFunds(false);
-          setAddFundsData({ amount: '', source: '', pin: '' });
+          setAddFundsData({ amount: '', source: '', pin: '', idempotencyKey: crypto.randomUUID() });
           fetchWalletData();
           toast.success('Funds added successfully!');
         } else {
@@ -222,7 +224,7 @@ export function WalletPage({ user, accessToken, onBack, onNavigate, isDemoMode }
 
         if (response.ok) {
           setShowSendMoney(false);
-          setSendMoneyData({ recipient: '', amount: '', pin: '' });
+          setSendMoneyData({ recipient: '', amount: '', pin: '', idempotencyKey: crypto.randomUUID() });
           fetchWalletData();
           toast.success('Money sent successfully!');
         } else {
