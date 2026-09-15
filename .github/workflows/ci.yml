@@ -16,3 +16,21 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm test
+
+  # The payments provider integration (Flutterwave, Selcom, webhook signature
+  # verification) is a Supabase Edge Function and runs on Deno, not Node/Vitest
+  # — it was previously untested by CI entirely. This job is separate from
+  # build-and-test because it needs the Deno runtime, not Node.
+  payments-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # deno.lock lives here; running from repo root fails dependency
+        # resolution for the npm: specifiers this function imports.
+        working-directory: src/supabase/functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno test --allow-env --allow-net server/payments/__tests__/
