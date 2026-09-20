@@ -79,7 +79,7 @@
     "build": "vite build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:payments": "cd src/supabase/functions && deno test --allow-env --allow-net server/payments/__tests__/",
+    "test:payments": "cd src/supabase/functions && deno test --allow-env --deny-net --no-prompt --preload server/payments/test-support/isolate_env.ts server/payments/__tests__/",
     "cap:sync": "npm run build && npx cap sync",
     "cap:android": "npm run cap:sync && npx cap open android",
     "cap:ios": "npm run cap:sync && npx cap open ios",

@@ -33,4 +33,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - run: deno test --allow-env --allow-net server/payments/__tests__/
+      # Keep these flags identical to "test:payments" in package.json. Network is denied and
+      # the environment is emptied so the tests can never reach a live payment provider;
+      # isolation.test.ts fails if either protection is removed.
+      - run: deno test --allow-env --deny-net --no-prompt --preload server/payments/test-support/isolate_env.ts server/payments/__tests__/
