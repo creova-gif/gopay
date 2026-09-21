@@ -4,11 +4,13 @@ import { initiateCard } from '../flutterwave.ts';
 import type { PaymentRequest } from '../types.ts';
 
 // These tests guard the isolation that keeps the payments tests from reaching a
-// live provider. They require outbound network to be fully DENIED (--deny-net), not
-// merely "not granted": without --deny-net Deno reports 'prompt', and a host-scoped
-// --allow-net leaves the global state at 'prompt' while granting that host. The one
-// check that attempts a provider call only runs when network is fully denied, so this
-// file cannot itself contact a provider.
+// live provider. They require outbound network to be DENIED, not merely "not granted":
+// without --deny-net Deno reports 'prompt', and a host-scoped --allow-net leaves the
+// global state at 'prompt' while granting that host. Even with --deny-net, an explicit
+// --allow-net=<host> still grants that host (the global state stays 'denied'), so each
+// provider host is checked individually as well. The one check that attempts a provider
+// call only runs when the global state AND every provider host are denied.
+// Add a host to PROVIDER_HOSTS whenever a payment provider host is added to the code.
 //
 // This file passes only under `npm run test:payments` (or the identical flags). It
 // deliberately fails under plain `deno test`; run the payments tests through the script.
@@ -24,8 +26,13 @@ const FAKE_REQ: PaymentRequest = {
   description: 'isolation guard - must never leave the process',
 };
 
+const PROVIDER_HOSTS = ['api.flutterwave.com:443', 'apigw.selcommobile.com:443'];
+
 function netFullyDenied(): boolean {
-  return Deno.permissions.querySync({ name: 'net' }).state === 'denied';
+  if (Deno.permissions.querySync({ name: 'net' }).state !== 'denied') return false;
+  return PROVIDER_HOSTS.every(
+    (host) => Deno.permissions.querySync({ name: 'net', host }).state === 'denied',
+  );
 }
 
 Deno.test('payments tests run with an empty environment (preload active)', () => {
