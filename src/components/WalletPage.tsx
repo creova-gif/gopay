@@ -45,12 +45,14 @@ export function WalletPage({ user, accessToken, onBack, onNavigate, isDemoMode }
     amount: '',
     source: '',
     pin: '',
+    idempotencyKey: crypto.randomUUID(),
   });
 
   const [sendMoneyData, setSendMoneyData] = useState({
     recipient: '',
     amount: '',
     pin: '',
+    idempotencyKey: crypto.randomUUID(),
   });
 
   const [requestMoneyData, setRequestMoneyData] = useState({
@@ -178,16 +180,20 @@ export function WalletPage({ user, accessToken, onBack, onNavigate, isDemoMode }
 
         if (response.ok) {
           setShowAddFunds(false);
-          setAddFundsData({ amount: '', source: '', pin: '' });
+          setAddFundsData({ amount: '', source: '', pin: '', idempotencyKey: crypto.randomUUID() });
           fetchWalletData();
           toast.success('Funds added successfully!');
         } else {
           const error = await response.json();
           toast.error(error.error || 'Failed to add funds');
+          // regenerate idempotency key so user retry uses a fresh key
+          setAddFundsData(prev => ({ ...prev, idempotencyKey: crypto.randomUUID() }));
         }
       } catch (error) {
         console.error('Error adding funds:', error);
         toast.error('An error occurred');
+        // regenerate idempotency key after unexpected failure
+        setAddFundsData(prev => ({ ...prev, idempotencyKey: crypto.randomUUID() }));
       }
     }
   };
@@ -222,16 +228,20 @@ export function WalletPage({ user, accessToken, onBack, onNavigate, isDemoMode }
 
         if (response.ok) {
           setShowSendMoney(false);
-          setSendMoneyData({ recipient: '', amount: '', pin: '' });
+          setSendMoneyData({ recipient: '', amount: '', pin: '', idempotencyKey: crypto.randomUUID() });
           fetchWalletData();
           toast.success('Money sent successfully!');
         } else {
           const error = await response.json();
           toast.error(error.error || 'Failed to send money');
+          // regenerate idempotency key so retry uses a fresh key
+          setSendMoneyData(prev => ({ ...prev, idempotencyKey: crypto.randomUUID() }));
         }
       } catch (error) {
         console.error('Error sending money:', error);
         toast.error('An error occurred');
+        // regenerate idempotency key after unexpected failure
+        setSendMoneyData(prev => ({ ...prev, idempotencyKey: crypto.randomUUID() }));
       }
     }
   };

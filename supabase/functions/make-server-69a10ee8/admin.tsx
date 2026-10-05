@@ -35,8 +35,9 @@ admin.get('/merchant-applications', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
-    // For demo purposes, allow all users to view applications
-    // In production, add: if (!await isAdmin(userId)) return c.json({ error: 'Forbidden' }, 403);
+    if (!await isAdmin(userId)) {
+      return c.json({ error: 'Forbidden' }, 403);
+    }
 
     const pendingIds = await kv.get('merchant:pending') || [];
     const applications = [];
@@ -71,8 +72,9 @@ admin.post('/approve-merchant', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
-    // For demo purposes, allow all users
-    // In production, add: if (!await isAdmin(userId)) return c.json({ error: 'Forbidden' }, 403);
+    if (!await isAdmin(userId)) {
+      return c.json({ error: 'Forbidden' }, 403);
+    }
 
     const { applicationId } = await c.req.json();
     
@@ -139,8 +141,9 @@ admin.post('/reject-merchant', async (c) => {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
-    // For demo purposes, allow all users
-    // In production, add: if (!await isAdmin(userId)) return c.json({ error: 'Forbidden' }, 403);
+    if (!await isAdmin(userId)) {
+      return c.json({ error: 'Forbidden' }, 403);
+    }
 
     const { applicationId, reason } = await c.req.json();
     
@@ -171,13 +174,31 @@ admin.post('/reject-merchant', async (c) => {
   }
 });
 
-// Make a user an admin (for setup purposes)
+// Make a user an admin. Previously this had NO authentication at all —
+// anyone could grant admin status to any userId with a single unauthenticated
+// request. Fixed with a standard secure-bootstrap pattern: the very first
+// admin may be added by any authenticated user only while the admin list is
+// still empty. Once at least one admin exists, only an existing admin may
+// add another.
 admin.post('/add-admin', async (c) => {
   try {
+    const accessToken = c.req.header('Authorization')?.split(' ')[1];
+    const callerId = await getUserId(accessToken);
+    if (!callerId) {
+      return c.json({ error: 'Unauthorized' }, 401);
+    }
+
     const { userId } = await c.req.json();
-    
+    if (!userId) {
+      return c.json({ error: 'userId is required' }, 400);
+    }
+
     const adminUsers = await kv.get('admin:users') || [];
-    
+
+    if (adminUsers.length > 0 && !adminUsers.includes(callerId)) {
+      return c.json({ error: 'Forbidden' }, 403);
+    }
+
     if (!adminUsers.includes(userId)) {
       adminUsers.push(userId);
       await kv.set('admin:users', adminUsers);
