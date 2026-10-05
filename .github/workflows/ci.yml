@@ -16,3 +16,14 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm test
+
+  edge-function-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+      - name: Run Deno tests for the payments module
+        working-directory: supabase/functions/make-server-69a10ee8
+        run: deno test --allow-net --allow-env payments/

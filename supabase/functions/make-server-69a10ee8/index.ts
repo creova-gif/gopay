@@ -3,6 +3,7 @@ import { cors } from 'npm:hono/cors';
 import { logger } from 'npm:hono/logger';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import * as kv from './kv_store.tsx';
+import { encryptPII, decryptPII } from './encryption.tsx';
 import shoppingApp from './shopping.tsx';
 import merchantApp from './merchant.tsx';
 import adminApp from './admin.tsx';
@@ -65,6 +66,50 @@ async function verifyUser(authHeader: string | null) {
   return user.id;
 }
 
+// PIN brute-force protection. Previously every PIN-gated endpoint compared
+// wallet.pin directly with no attempt limit at all — a 4-digit PIN (10,000
+// possibilities) is practically guessable given an already-valid session
+// token and no lockout. This locks PIN-gated actions for 15 minutes after 5
+// consecutive wrong attempts, and resets the counter on a correct PIN.
+const PIN_MAX_ATTEMPTS = 5;
+const PIN_LOCKOUT_MS = 15 * 60 * 1000;
+
+async function checkPin(
+  userId: string,
+  wallet: any,
+  submittedPin: string
+): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  const now = Date.now();
+
+  if (wallet.pinLockedUntil && now < wallet.pinLockedUntil) {
+    const minutesLeft = Math.ceil((wallet.pinLockedUntil - now) / 60000);
+    return {
+      ok: false,
+      error: `Too many incorrect PIN attempts. Try again in ${minutesLeft} minute(s).`,
+      status: 429,
+    };
+  }
+
+  if (wallet.pin !== submittedPin) {
+    const attempts = (wallet.pinFailedAttempts || 0) + 1;
+    wallet.pinFailedAttempts = attempts;
+    if (attempts >= PIN_MAX_ATTEMPTS) {
+      wallet.pinLockedUntil = now + PIN_LOCKOUT_MS;
+      wallet.pinFailedAttempts = 0;
+    }
+    await kv.set(`wallet:${userId}`, wallet);
+    return { ok: false, error: 'Invalid PIN', status: 400 };
+  }
+
+  if (wallet.pinFailedAttempts || wallet.pinLockedUntil) {
+    wallet.pinFailedAttempts = 0;
+    wallet.pinLockedUntil = null;
+    await kv.set(`wallet:${userId}`, wallet);
+  }
+
+  return { ok: true };
+}
+
 // Auth Routes
 app.post('/make-server-69a10ee8/auth/signup', async (c) => {
   try {
@@ -85,13 +130,17 @@ app.post('/make-server-69a10ee8/auth/signup', async (c) => {
 
     const userId = authData.user.id;
 
-    // Store user profile
+    // Store user profile. nida (Tanzania's national ID number) and phone are
+    // sensitive PII — previously stored in plaintext in this generic KV
+    // record. Encrypted at rest here using the AES-256-GCM utility already
+    // built for exactly this purpose; decrypted again only at the one read
+    // site that returns the full profile to its owner (GET /user/profile).
+    const encryptedPII = await encryptPII({ nida, phone });
     await kv.set(`user:${userId}`, {
       id: userId,
       email,
       name,
-      phone,
-      nida,
+      ...encryptedPII,
       createdAt: new Date().toISOString(),
     });
 
@@ -133,7 +182,8 @@ app.get('/make-server-69a10ee8/user/profile', async (c) => {
       return c.json({ error: 'Profile not found' }, 404);
     }
 
-    return c.json(userProfile);
+    const decryptedProfile = await decryptPII(userProfile);
+    return c.json(decryptedProfile);
   } catch (error: any) {
     console.error('Error fetching profile:', error);
     return c.json({ error: error.message }, 500);
@@ -189,8 +239,9 @@ app.post('/make-server-69a10ee8/wallet/link-account', async (c) => {
 
     // Verify PIN
     const wallet = await kv.get(`wallet:${userId}`);
-    if (wallet.pin !== pin) {
-      return c.json({ error: 'Invalid PIN' }, 400);
+    const pinCheck = await checkPin(userId, wallet, pin);
+    if (!pinCheck.ok) {
+      return c.json({ error: pinCheck.error }, pinCheck.status);
     }
 
     const accounts = await kv.get(`linked_accounts:${userId}`) || [];
@@ -221,30 +272,44 @@ app.post('/make-server-69a10ee8/wallet/add-funds', async (c) => {
   }
 
   try {
-    const { amount, source, pin } = await c.req.json();
+    const { amount, source, pin, idempotencyKey } = await c.req.json();
 
     const wallet = await kv.get(`wallet:${userId}`);
-    if (wallet.pin !== pin) {
-      return c.json({ error: 'Invalid PIN' }, 400);
+    const pinCheck = await checkPin(userId, wallet, pin);
+    if (!pinCheck.ok) {
+      return c.json({ error: pinCheck.error }, pinCheck.status);
     }
 
-    const newBalance = wallet.balance + parseInt(amount);
-    wallet.balance = newBalance;
-    await kv.set(`wallet:${userId}`, wallet);
+    // idempotencyKey should be client-generated and stable across retries of
+    // the SAME attempt (e.g. UUID created once when the user taps "Add
+    // Funds", resent unchanged on any automatic retry). Older clients that
+    // don't send one yet get a per-request fallback, which is safe (no
+    // crash) but gives no retry protection until the frontend sends a real
+    // stable key.
+    const key = idempotencyKey || crypto.randomUUID();
 
-    // Record transaction
-    const transactionId = `tx_${Date.now()}`;
-    await kv.set(`transaction:${transactionId}`, {
-      id: transactionId,
-      userId,
-      type: 'credit',
-      amount: parseInt(amount),
-      description: `Added funds from ${source}`,
-      timestamp: new Date().toISOString(),
-      status: 'completed',
+    const { data, error } = await supabase.rpc('process_wallet_transaction', {
+      p_idempotency_key: key,
+      p_user_id: userId,
+      p_endpoint: 'wallet/add-funds',
+      p_entry_type: 'credit',
+      p_amount: parseInt(amount),
+      p_currency: wallet.currency || 'TZS',
+      p_description: `Added funds from ${source}`,
     });
 
-    return c.json({ success: true, newBalance });
+    if (error) throw error;
+    if (data.error) {
+      return c.json({ error: data.message || data.error }, data.error === 'conflict' ? 409 : 400);
+    }
+
+    // Keep the kv wallet record's cached balance in sync for endpoints that
+    // still read it directly (e.g. GET /wallet/balance). The ledger in
+    // gopay_ledger / gopay_wallet_balance remains the source of truth.
+    wallet.balance = data.newBalance;
+    await kv.set(`wallet:${userId}`, wallet);
+
+    return c.json({ success: true, newBalance: data.newBalance, transactionId: data.transactionId });
   } catch (error: any) {
     console.error('Error adding funds:', error);
     return c.json({ error: error.message }, 500);
@@ -259,34 +324,43 @@ app.post('/make-server-69a10ee8/wallet/send-money', async (c) => {
   }
 
   try {
-    const { recipient, amount, pin } = await c.req.json();
+    const { recipient, amount, pin, idempotencyKey } = await c.req.json();
 
     const wallet = await kv.get(`wallet:${userId}`);
-    if (wallet.pin !== pin) {
-      return c.json({ error: 'Invalid PIN' }, 400);
+    const pinCheck = await checkPin(userId, wallet, pin);
+    if (!pinCheck.ok) {
+      return c.json({ error: pinCheck.error }, pinCheck.status);
     }
 
     const amountNum = parseInt(amount);
-    if (wallet.balance < amountNum) {
-      return c.json({ error: 'Insufficient balance' }, 400);
-    }
+    const key = idempotencyKey || crypto.randomUUID();
 
-    wallet.balance -= amountNum;
-    await kv.set(`wallet:${userId}`, wallet);
-
-    // Record transaction
-    const transactionId = `tx_${Date.now()}`;
-    await kv.set(`transaction:${transactionId}`, {
-      id: transactionId,
-      userId,
-      type: 'debit',
-      amount: amountNum,
-      description: `Sent to ${recipient}`,
-      timestamp: new Date().toISOString(),
-      status: 'completed',
+    // Balance check + debit happen atomically inside the function (under an
+    // advisory lock keyed on the user), so this replaces both the manual
+    // "if balance < amount" check and the direct balance mutation that used
+    // to happen here.
+    const { data, error } = await supabase.rpc('process_wallet_transaction', {
+      p_idempotency_key: key,
+      p_user_id: userId,
+      p_endpoint: 'wallet/send-money',
+      p_entry_type: 'debit',
+      p_amount: amountNum,
+      p_currency: wallet.currency || 'TZS',
+      p_description: `Sent to ${recipient}`,
     });
 
-    return c.json({ success: true, newBalance: wallet.balance });
+    if (error) throw error;
+    if (data.error === 'insufficient_balance') {
+      return c.json({ error: 'Insufficient balance' }, 400);
+    }
+    if (data.error) {
+      return c.json({ error: data.message || data.error }, data.error === 'conflict' ? 409 : 400);
+    }
+
+    wallet.balance = data.newBalance;
+    await kv.set(`wallet:${userId}`, wallet);
+
+    return c.json({ success: true, newBalance: data.newBalance, transactionId: data.transactionId });
   } catch (error: any) {
     console.error('Error sending money:', error);
     return c.json({ error: error.message }, 500);
@@ -325,8 +399,9 @@ app.post('/make-server-69a10ee8/payments/process', async (c) => {
     const { provider, accountNumber, amount, pin } = await c.req.json();
 
     const wallet = await kv.get(`wallet:${userId}`);
-    if (wallet.pin !== pin) {
-      return c.json({ error: 'Invalid PIN' }, 400);
+    const pinCheck = await checkPin(userId, wallet, pin);
+    if (!pinCheck.ok) {
+      return c.json({ error: pinCheck.error }, pinCheck.status);
     }
 
     const amountNum = parseInt(amount);
@@ -384,8 +459,9 @@ app.post('/make-server-69a10ee8/payments/bill-payment', async (c) => {
       return c.json({ error: 'Wallet not found' }, 404);
     }
     
-    if (wallet.pin !== pin) {
-      return c.json({ error: 'Invalid PIN - Please check your PIN and try again' }, 400);
+    const pinCheck = await checkPin(userId, wallet, pin);
+    if (!pinCheck.ok) {
+      return c.json({ error: pinCheck.error }, pinCheck.status);
     }
 
     const amountNum = parseInt(amount);
@@ -530,8 +606,9 @@ app.post('/make-server-69a10ee8/wallet/pay-qr', async (c) => {
     const { qrCode, amount, pin } = await c.req.json();
 
     const wallet = await kv.get(`wallet:${userId}`);
-    if (wallet.pin !== pin) {
-      return c.json({ error: 'Invalid PIN' }, 400);
+    const pinCheck = await checkPin(userId, wallet, pin);
+    if (!pinCheck.ok) {
+      return c.json({ error: pinCheck.error }, pinCheck.status);
     }
 
     const qrData = await kv.get(`qr:${qrCode}`);
