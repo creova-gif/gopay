@@ -12,7 +12,7 @@
 
 ## What this is
 
-goPay is a fintech super app designed around how money actually moves in East African markets — not a Western banking app translated into Swahili. It combines everyday payments, bill and government-service payments, travel booking, and a loyalty layer (**GoRewards**) into a single native mobile experience, with an offline USSD fallback path for users without reliable data access.
+goPay is a fintech super app designed around how money actually moves in East African markets — not a Western banking app translated into Swahili. It combines everyday payments, bill and government-service payments, travel booking, and a loyalty layer (**GoRewards**) into a single native mobile experience, with a real offline payment queue (IndexedDB-backed, currently wired into bill payments) for users with unreliable connectivity.
 
 Positioning is closest to Revolut, WeChat Pay, and Selcom, but built specifically around Tanzanian payment rails and regulatory expectations from the ground up rather than adapted after the fact.
 
@@ -27,7 +27,7 @@ Positioning is closest to Revolut, WeChat Pay, and Selcom, but built specificall
 - **Travel** — in-app booking flows
 - **GoRewards** — loyalty and cashback layer across all transaction types
 - **Merchant tools** — a business-facing side for accepting payments
-- **Offline fallback** — USSD path for low-connectivity users
+- **Offline resilience** — actions queue locally (IndexedDB) and sync when connectivity returns, currently wired into bill payments. USSD/SMS/IVR access is referenced in the UI copy but has no real backing integration yet — not an actual capability despite the on-screen text implying otherwise
 - **Swahili-first UI** — localization built in from the start, not bolted on
 
 > Regulatory positioning note: goPay is being built with Tanzanian financial regulatory requirements in mind. Formal compliance status (Bank of Tanzania or equivalent) should be confirmed by legal/compliance review before this is stated as fact in any investor-facing material — this README intentionally doesn't assert compliance that hasn't been formally verified.
